@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f7f8f5" />
+  <title>DecisionMate — A clearer way forward</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Yosee home" id="homeLink">
+        <img class="brand-logo" src="yosee-logo.png" alt="Yosee — Your Partner in Deciding" />
+      </a>
+      <div class="topbar-right"><span class="session-note"><span class="live-dot"></span> One guided session</span><button class="icon-button" id="restartTop" title="Start over" aria-label="Start over"><svg viewBox="0 0 20 20" fill="none"><path d="M3.3 8a6.9 6.9 0 1 1-.1 4M3 3.8v4.5h4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+    </header>
+
+    <main id="homeView" class="home-view">
+      <div class="hero">
+        <div class="eyebrow"><span class="eyebrow-line"></span> A little space to think</div>
+        <h1>What are you<br /><span>deciding?</span></h1>
+        <p class="hero-copy">Big, small, or somewhere in between. Let’s think it through together.</p>
+        <div class="starter-area">
+          <div class="starter-label">A few places to start <span>— or write your own below</span></div>
+          <div class="starter-grid" id="starterGrid"></div>
+          <form class="dilemma-form" id="dilemmaForm">
+            <label class="sr-only" for="dilemmaInput">Describe your decision</label>
+            <textarea id="dilemmaInput" rows="1" maxlength="500" placeholder="I’m trying to decide whether…" required></textarea>
+            <button class="send-button" type="submit" aria-label="Start thinking" title="Start thinking"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          </form>
+          <div class="form-foot"><span>Just one thoughtful conversation.</span><span><span id="charCount">0</span>/500</span></div>
+          <div class="data-note">Your messages are sent to the AI so it can reply. Please leave out names and contact details.</div>
+        </div>
+        <section class="saved-decisions hidden" id="savedDecisions" aria-label="Saved decisions">
+          <div class="saved-decisions-head"><div><strong>Past decisions</strong><span>Saved in this browser for you to revisit.</span></div><button class="clear-memory" id="clearMemory" type="button">Clear saved decisions</button></div>
+          <div class="saved-decision-list" id="savedDecisionList"></div>
+        </section>
+        <div class="home-footer"><span class="footer-spark">✳</span> You’re the one who decides. We’re here to help you see things clearly.</div>
+      </div>
+      <aside class="side-note" aria-hidden="true">
+        <div class="note-orbit orbit-one"></div><div class="note-orbit orbit-two"></div><div class="note-center"><span>✳</span></div>
+        <div class="note-card card-top"><span class="note-number">01</span><span>Notice what<br />matters to you</span></div>
+        <div class="note-card card-bottom"><span class="note-number">02</span><span>Find your own<br />way forward</span></div>
+        <span class="note-caption">THINK · DECIDE · REFLECT</span>
+      </aside>
+    </main>
+
+    <main id="sessionView" class="session-view hidden">
+      <div class="session-main">
+        <div class="session-heading">
+          <div><div class="eyebrow"><span class="eyebrow-line"></span><span id="phaseEyebrow">THINKING IT THROUGH</span></div><h2 id="sessionTitle">Let’s get a clearer picture.</h2></div>
+          <div class="step-pill"><span id="stepNumber">01</span><span class="step-divider">/</span><span id="stepTotal">08</span></div>
+        </div>
+        <button class="back-step" id="backStep" type="button" aria-label="Go back to the previous step">← Go back</button>
+        <div class="agency-meter-wrap" aria-live="polite">
+          <div class="agency-meter-title">How are you making this decision?</div>
+          <div class="agency-meter-track" id="agencyMeter" data-stage="outsourced" role="img" aria-label="Decision ownership: Outsourced"><span class="agency-meter-segment"></span><span class="agency-meter-segment"></span><span class="agency-meter-segment"></span></div>
+          <div class="agency-meter-labels"><span>Outsourced</span><span>Consultative</span><span>Empowered</span></div>
+          <div class="agency-meter-current" id="agencyMeterCurrent">Current approach: Outsourced</div>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="tone-read" id="toneRead" aria-live="polite"><span class="tone-indicator" id="toneIndicator"></span><span><strong>Tone impression</strong><span id="toneLabel">Still getting a feel for it</span></span><span class="tone-note">A rough reading of your words</span></div>
+        <div class="model-notice hidden" id="modelNotice" role="status">AI replies are unavailable right now. We’ll continue with guided prompts.</div>
+        <div class="chat-frame">
+          <div class="chat-messages" id="chatMessages" aria-live="polite"></div>
+          <div class="chat-composer-wrap" id="composerWrap">
+            <form class="chat-composer" id="answerForm"><label class="sr-only" for="answerInput">Your response</label><textarea id="answerInput" rows="1" maxlength="1000" placeholder="Take your time…" required></textarea><button class="send-button" type="submit" aria-label="Send response"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></form>
+            <div class="composer-hint"><span>There’s no right answer here.</span><span>↵ <span>to send</span></span></div>
+          </div>
+        </div>
+      </div>
+      <aside class="session-aside">
+        <div class="aside-sticky"><div class="aside-heading"><span class="aside-icon">✳</span><div><strong>Your thinking space</strong><span>A few things to keep in mind</span></div></div>
+          <div class="thought-list" id="thoughtList"><div class="thought-item active"><span class="thought-dot"></span><div><strong>What matters</strong><span>Start with what feels important</span></div></div><div class="thought-item"><span class="thought-dot"></span><div><strong>What’s possible</strong><span>Make room for the options</span></div></div><div class="thought-item"><span class="thought-dot"></span><div><strong>Your next step</strong><span>The choice is always yours</span></div></div></div>
+          <div class="aside-quote"><span class="quote-mark">“</span><p>You don’t have to have it all figured out to take the next step.</p><span class="quote-foot">ONE THOUGHT AT A TIME</span></div>
+          <button class="exit-button" id="restartAside"><svg viewBox="0 0 20 20" fill="none"><path d="M3.3 8a6.9 6.9 0 1 1-.1 4M3 3.8v4.5h4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> Start a new conversation</button>
+        </div>
+      </aside>
+    </main>
+
+    <main id="resultView" class="result-view hidden">
+      <section class="result-intro"><div class="eyebrow"><span class="eyebrow-line"></span> YOUR SESSION, IN REFLECTION</div><h1>Your Decision<br /><span>Style</span></h1><p>A moment to see the thought you brought to this decision.</p></section>
+      <section class="result-layout">
+        <div class="score-card"><div class="score-top"><div><span class="score-label">YOUR DECISION STYLE</span><span class="score-context">A reflection of how you approached this choice</span></div><span class="score-spark">✳</span></div><div class="decision-emoji-list" id="decisionEmojiList" aria-label="Decision styles"></div><div class="decision-style-summary" id="decisionStyleSummary" aria-live="polite"></div></div>
+        <div class="dimensions-card"><div class="dimensions-head"><div><span class="score-label">THREE DECISION STYLES</span><h3>Tips to build your DI</h3></div><span class="dimensions-icon">↗</span></div><div class="di-tips"><p><strong>#1.</strong> Decisions matter. Deciding matters even more!</p><p><strong>#2.</strong> You don’t need someone to make your decisions for you. You need someone to help you think them through.</p><p><strong>#3.</strong> AI can support your decision-making, but don’t let it make the decision for you.</p></div></div>
+      </section>
+      <section class="insight-card"><div class="insight-icon">✳</div><div><span class="score-label">A THOUGHT TO CARRY WITH YOU</span><p id="affirmationText">A thoughtful decision does not need perfect certainty. You can take your next step with care and adjust as you learn.</p></div></section>
+      <section class="reflection-card"><div class="reflection-head"><span class="score-label">YOUR CHECK-IN</span><span class="reflection-badge">Satisfied with your decision?</span></div><p id="reflectionText"></p><div class="reflection-decision"><span>YOUR DECISION</span><strong id="decisionText"></strong></div></section>
+      <section class="print-transcript" id="printTranscriptSection"><h2>Conversation</h2><div id="printTranscript"></div></section>
+      <div class="result-actions"><div class="download-actions"><button class="secondary-button" id="backFromResult" type="button">← Back to conversation</button><button class="secondary-button" id="downloadPdf" type="button" aria-label="Download your decision as a PDF">Download decision as PDF</button><button class="secondary-button" id="downloadText" type="button">Download text</button></div><button class="primary-button" id="newSession">Start a new decision <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span>Conversation saved in this browser; manage it under Past decisions.</span></div>
+    </main>
+    <footer class="site-footer"><img class="footer-logo" src="yosee-logo.png" alt="Yosee — Your Partner in Deciding" /><span>Thoughtful decisions start with you.</span><span>✳</span></footer>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
