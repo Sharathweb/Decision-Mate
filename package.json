@@ -1,8 +1,14 @@
 {
   "name": "decisionmate-prototype",
+  "version": "1.0.0",
+  "main": "server.js",
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "echo build",
     "start": "node server.js"
+  },
+  "engines": {
+    "node": "20.x"
   }
 }
