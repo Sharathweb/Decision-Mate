@@ -1,4 +1,4 @@
-# DecisionMate v1 prototype
+# Yosee v1 prototype
 
 A self-contained browser prototype for a guided **Think → Decide → Check in → Reflect** experience.
 

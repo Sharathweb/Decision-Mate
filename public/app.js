@@ -6,7 +6,7 @@ const starters = [
   { icon: '◷', label: 'Where my time goes', text: 'I have several things competing for my time, and I’m confused about what to prioritize. How should I decide what gets my time?' }
 ];
 const maxThinkQuestions = 6;
-const conversationStorageKey = 'decisionmate-saved-conversations-v1';
+const conversationStorageKey = 'Yosee-saved-conversations-v1';
 const homeView = document.querySelector('#homeView');
 const sessionView = document.querySelector('#sessionView');
 const resultView = document.querySelector('#resultView');
@@ -124,7 +124,7 @@ function autoExpand(textarea) {
 }
 function addMessage(role, text, note = '') {
   const article = document.createElement('article'); article.className = `message ${role}-message${note ? ' message-with-note' : ''}`;
-  const meta = document.createElement('div'); meta.className = 'message-meta'; meta.textContent = role === 'assistant' ? 'DECISIONMATE' : 'YOU';
+  const meta = document.createElement('div'); meta.className = 'message-meta'; meta.textContent = role === 'assistant' ? 'Yosee' : 'YOU';
   const bubble = document.createElement('div'); bubble.className = 'message-bubble'; bubble.textContent = text;
   article.append(meta, bubble);
   if (note) { const aside = document.createElement('span'); aside.className = 'message-note'; aside.textContent = note; article.append(aside); }
@@ -408,7 +408,7 @@ function renderSavedSnapshot(record) {
   const transcriptForPrint = document.querySelector('#printTranscript'); transcriptForPrint.innerHTML = '';
   for (const message of record.transcript || []) {
     const entry = document.createElement('p');
-    const speaker = document.createElement('strong'); speaker.textContent = message.role === 'assistant' ? 'DecisionMate: ' : 'You: ';
+    const speaker = document.createElement('strong'); speaker.textContent = message.role === 'assistant' ? 'Yosee: ' : 'You: ';
     entry.append(speaker, document.createTextNode(message.content));
     transcriptForPrint.append(entry);
   }
@@ -431,11 +431,11 @@ function viewSavedConversation(id) {
 }
 function downloadSessionText() {
   const transcript = [...chatMessages.querySelectorAll('.message:not(.typing-message)')].map(message => {
-    const role = message.classList.contains('assistant-message') ? 'DecisionMate' : 'You';
+    const role = message.classList.contains('assistant-message') ? 'Yosee' : 'You';
     return `${role}: ${message.querySelector('.message-bubble')?.textContent || ''}`;
   }).join('\n\n');
   const content = [
-    'DecisionMate — Your Decision Style',
+    'Yosee — Your Decision Style',
     `Saved on: ${new Date().toLocaleDateString()}`,
     '', 'YOUR DECISION', state.decision,
     '', 'YOUR REFLECTION', state.reflection,
@@ -446,7 +446,7 @@ function downloadSessionText() {
   ].join('\n');
   const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob); const link = document.createElement('a');
-  link.href = url; link.download = 'decisionmate-snapshot.txt'; document.body.append(link); link.click(); link.remove();
+  link.href = url; link.download = 'Yosee-snapshot.txt'; document.body.append(link); link.click(); link.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 function reset() {
