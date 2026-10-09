@@ -7,9 +7,5 @@
     "directory": "./public",
     "binding": "ASSETS",
     "run_worker_first": ["/api/*"]
-  },
-  "ai": {
-    "binding": "AI",
-    "remote": true
   }
 }

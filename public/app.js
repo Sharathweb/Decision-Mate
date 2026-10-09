@@ -349,21 +349,22 @@ async function onAnswer(value) {
   updateSessionChrome();
 }
 const decisionStyles = {
-  undecided: { emoji: '🤔', label: 'Undecided', description: 'You may still be working out which choice feels right.' },
+  outsourced: { emoji: '👥', label: 'Outsourced', description: 'You are relying on someone else to make the choice for you.' },
   consultative: { emoji: '🤝', label: 'Consultative', description: 'You are using other people’s input alongside your own thinking.' },
   empowered: { emoji: '💪', label: 'Empowered', description: 'You are taking ownership of the choice yourself.' }
 };
 function getDecisionStyle(decision = state.decision, answers = state.answers) {
   const decisionText = decision.toLowerCase();
-  const all = [...answers, decision].join(' ').toLowerCase();
-  const ownsChoice = /\b(i decide|i have decided|i've decided|i chose|i choose|i will|i'll|i'm going to|i am going to|i'm choosing|i am choosing|my choice|my decision|i prefer|i think|i plan to|i want to|i am taking|i'm taking|i am leaving|i'm leaving|i accept)\b/.test(decisionText);
-  const uncertain = /\b(not sure|unsure|undecided|can't decide|cannot decide|still deciding|maybe|i don't know)\b/.test(decisionText);
-  const consultative = /\b(advice|suggest|recommend|my parents|my family|my friend|my teacher|my mentor|they think|they want|talked with|discussed)\b/.test(all);
-  if (uncertain && !ownsChoice) return decisionStyles.undecided;
+  const recent = [...answers.slice(-2), decision].join(' ').toLowerCase();
+  const all = [...state.userMessages, ...answers, decision].join(' ').toLowerCase();
+  const ownsChoice = /\b(i decide|i have decided|i've decided|i chose|i choose|i will|i'll|i'm going to|i am going to|i'm choosing|i am choosing|my choice|my decision|i prefer|i think|i plan to|i want to|i am taking|i'm taking|i am leaving|i'm leaving|i accept)\b/.test(decisionText) || /^(?:to\s+)?(take|choose|accept|decline|leave|stay|go|apply|continue)\b/.test(decisionText);
+  const delegatesChoice = /\b(decide for me|choose for me|pick for me|tell me what to do|let (?:them|my (?:family|parents|friend|teacher|mentor)) decide|i'll do what (?:they|my (?:family|parents|friend|teacher|mentor)) say|they made the decision for me)\b/.test(recent);
+  const consultative = /\b(advice|suggest|recommend|my parents|my family|my friend|my teacher|my mentor|they think|they want|talked with|discussed|asked .* opinion)\b/.test(recent) || /\b(advice|recommendation|discussed it with|asked .* for advice)\b/.test(all);
+  if (delegatesChoice) return decisionStyles.outsourced;
   if (ownsChoice && consultative) return decisionStyles.consultative;
   if (ownsChoice) return decisionStyles.empowered;
   if (consultative) return decisionStyles.consultative;
-  return decisionStyles.undecided;
+  return decisionStyles.consultative;
 }
 function renderDecisionStyles(activeStyle) {
   const list = document.querySelector('#decisionEmojiList'); list.replaceChildren();
@@ -455,6 +456,101 @@ function reset() {
   dilemmaInput.value = ''; autoExpand(dilemmaInput); updateCharCount(); document.querySelectorAll('.starter-chip').forEach(c=>c.classList.remove('selected')); window.scrollTo({top:0,behavior:'smooth'}); dilemmaInput.focus();
 }
 document.querySelector('#dilemmaForm').addEventListener('submit', e => { e.preventDefault(); if (dilemmaInput.value.trim()) beginSession(dilemmaInput.value); });
+
+function setOwnershipFromAnswer(text) {
+  if (state.stage === 'reflect' && /^(yes|yep|yeah|no|nope)\b/i.test(text.trim())) return;
+  const recent = [...state.answers.slice(-1), text].join(' ').toLowerCase();
+  const wholeConversation = [...state.userMessages, ...state.answers, text].join(' ').toLowerCase();
+  const asksOthersToChoose = /\b(decide for me|choose for me|pick for me|tell me what to do|you decide|let (?:my|someone|them) decide|leave it up to (?:my|someone|them)|follow (?:their|his|her) decision|i'll do what (?:they|my (?:family|parents|friend|teacher|mentor)) say)\b/.test(recent);
+  const seeksInput = /\b(advice|recommend|suggestion|talked (?:to|with)|discussed|asked (?:my|a) (?:friend|parent|teacher|mentor)|my (?:friend|parent|teacher|mentor) said|they suggested)\b/.test(recent) || /\b(advice|recommendation|discussed it with|asked .* for advice)\b/.test(wholeConversation);
+  const ownsChoice = /\b(i decided|i've decided|i have decided|i choose|i chose|i'll|i will|i'm going to|i am going to|my decision|my choice|i prefer|i'm taking|i am taking|i'll take|i am choosing|i'm choosing|i accept|i'll accept|i think i will)\b/.test(recent) || /^(?:to\s+)?(take|choose|accept|decline|leave|stay|go|apply|continue)\b/.test(text.trim().toLowerCase()) || state.decision.trim().toLowerCase() === text.trim().toLowerCase();
+  const stage = asksOthersToChoose ? 'outsourced' : seeksInput ? 'consultative' : ownsChoice || state.stage === 'decide' ? 'empowered' : 'consultative';
+  const meter = document.querySelector('#agencyMeter');
+  if (meter) {
+    meter.dataset.stage = stage;
+    meter.setAttribute('aria-label', `Decision ownership: ${stage[0].toUpperCase()}${stage.slice(1)}`);
+  }
+  const current = document.querySelector('#agencyMeterCurrent');
+  if (current) current.textContent = `Current approach: ${stage[0].toUpperCase()}${stage.slice(1)}`;
+}
+setOwnershipFromAnswer('');
+
+function showSatisfactionChoices() {
+  const form = document.querySelector('#answerForm');
+  if (!form || document.querySelector('#satisfactionChoices')) return;
+  const choices = document.createElement('div');
+  choices.id = 'satisfactionChoices';
+  choices.setAttribute('role', 'group');
+  choices.setAttribute('aria-label', 'Are you satisfied with your decision?');
+  choices.style.cssText = 'display:flex;align-items:center;gap:8px;margin:0 0 8px 2px;';
+  const note = document.createElement('span');
+  note.textContent = 'Choose one:';
+  note.style.cssText = 'font-size:11px;color:#78817b;margin-right:2px;';
+  choices.append(note);
+  for (const label of ['Yes', 'No']) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = label;
+    button.style.cssText = 'border:1px solid #b9cbbd;border-radius:18px;background:#fff;color:#315840;padding:7px 16px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;';
+    button.addEventListener('click', () => {
+      answerInput.value = label;
+      form.requestSubmit();
+    });
+    choices.append(button);
+  }
+  form.insertAdjacentElement('beforebegin', choices);
+}
+
+function hideSatisfactionChoices() {
+  document.querySelector('#satisfactionChoices')?.remove();
+}
+
+document.querySelector('#answerForm')?.addEventListener('submit', event => {
+  const answer = answerInput.value.trim();
+  if (!answer) return;
+  setOwnershipFromAnswer(answer);
+
+  const lastAssistantText = [...chatMessages.querySelectorAll('.assistant-message .message-bubble')].at(-1)?.textContent || '';
+  const confirmsDecision = state.stage === 'think' && /are you satisfied with your decision/i.test(lastAssistantText) && /^(yes|yep|yeah|no|nope)\b/i.test(answer) && state.answers.length > 0;
+  if (confirmsDecision) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    state.decision = state.answers[state.answers.length - 1];
+    state.reflection = answer;
+    state.userMessages.push(answer);
+    addMessage('user', answer);
+    answerInput.value = '';
+    autoExpand(answerInput);
+    if (/^(yes|yep|yeah)\b/i.test(answer)) {
+      finishSession();
+    } else {
+      addMessage('assistant', 'Thanks for talking it through with me. It was nice chatting with you. Have a great day, and we can pick this up again whenever you need.');
+      composerWrap.classList.add('hidden');
+    }
+    return;
+  }
+  if (state.stage === 'reflect' && /^(yes|yep|yeah|no|nope)\b/i.test(answer)) hideSatisfactionChoices();
+
+  const clearDecision = (state.stage === 'decide' || state.stage === 'think' && (/\b(i decided|i've decided|i have decided|i choose|i chose|i'll take|i will take|i'm going to|i am going to|my decision is|my choice is|i'm choosing|i am choosing|i accept|i'll accept)\b|^to\s+(take|choose|accept|decline|leave|stay|go|apply|continue)\b/i.test(answer))) && !/\b(not sure|unsure|maybe|still deciding|can't decide|cannot decide)\b/i.test(answer);
+  if (!clearDecision) return;
+
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  state.answers.push(answer);
+  state.userMessages.push(answer);
+  state.decision = answer;
+  state.reflection = '';
+  state.stage = 'reflect';
+  state.viewingSaved = false;
+  addMessage('user', answer);
+  answerInput.value = '';
+  autoExpand(answerInput);
+  updateSessionChrome();
+  setOwnershipFromAnswer(answer);
+  answerInput.placeholder = 'Yes or no…';
+  requestAssistantTurn(`You have already made your decision: “${answer}”. Ask only: “Are you satisfied with your decision?” The student can answer yes or no. Do not ask them to decide again or continue exploring.`).finally(showSatisfactionChoices);
+}, true);
+document.querySelector('#dilemmaForm')?.addEventListener('submit', hideSatisfactionChoices, true);
 document.querySelector('#answerForm').addEventListener('submit', e => { e.preventDefault(); onAnswer(answerInput.value); });
 document.querySelector('#backStep').addEventListener('click', goBackOneStep);
 document.querySelector('#backFromResult').addEventListener('click', returnToConversation);
